@@ -38,8 +38,15 @@ D_Z_d = sp.Matrix([
     [0, 0, 0, 1]
 ])
 
+class DH_Param:
+    def __init__(self, alpha, a, d, theta):
+        self.alpha = alpha
+        self.a = a
+        self.d = d
+        self.theta = theta
+
 def calculate(dh_params):
-    T = sp.eye(4)
+    list = []
 
     for dh_param in dh_params:
         R_X_alpha_tmp = R_X_alpha
@@ -70,28 +77,38 @@ def calculate(dh_params):
                         R_Z_theta_tmp = R_Z_theta.evalf(chop=True, subs={theta: dh_param.theta})
 
 
-        T_tmp = sp.nsimplify(R_X_alpha_tmp * D_X_a_tmp * R_Z_theta_tmp * D_Z_d_tmp)
+        list.append(sp.nsimplify(R_X_alpha_tmp * D_X_a_tmp * R_Z_theta_tmp * D_Z_d_tmp))
 
-        sp.pprint(T_tmp)
+    return list
 
-        T *= T_tmp
+def product(list, begin=0, end=0):
+    M = sp.eye(4)
 
-    sp.pprint(T)
+    if end != 0 and begin < end:
+        for i in range(begin, end):
+            M *= list[i]
+    else:
+        for T in list:
+            M *= T
 
-class DH_Param:
-    def __init__(self, alpha, a, d, theta):
-        self.alpha = alpha
-        self.a = a
-        self.d = d
-        self.theta = theta
+    M = sp.nsimplify(M)
+    M = sp.expand(M)
+
+    return M
 
 if __name__ == "__main__":
 
-    calculate([
+    list = calculate([
         DH_Param(0, 0, 0, theta1),
         DH_Param(sp.rad(-90), 0, d2, theta2),
-        DH_Param(sp.rad(90), 0, d3, theta3),
+        DH_Param(sp.rad(90), 0, d3, sp.rad(180)),
         DH_Param(0, a3, d4, theta4),
         DH_Param(sp.rad(90), 0, 0, theta5),
         DH_Param(sp.rad(-90), 0, 0, theta6)
     ])
+
+    for T in list:
+        sp.pprint(T)
+
+    M = product(list)
+    sp.pprint(M.row(0)[0])
