@@ -110,5 +110,5 @@ if __name__ == "__main__":
     for T in list:
         sp.pprint(T)
 
-    M = product(list)
-    sp.pprint(M.row(0)[0])
+    T = product(list, 0, 3)
+    sp.pprint(T)
