@@ -93,6 +93,7 @@ def product(list, begin=0, end=0):
 
     M = sp.nsimplify(M)
     M = sp.expand(M)
+    M = sp.trigsimp(M)
 
     return M
 
@@ -100,15 +101,12 @@ if __name__ == "__main__":
 
     list = calculate([
         DH_Param(0, 0, 0, theta1),
-        DH_Param(sp.rad(-90), 0, d2, theta2),
-        DH_Param(sp.rad(90), 0, d3, sp.rad(180)),
-        DH_Param(0, a3, d4, theta4),
-        DH_Param(sp.rad(90), 0, 0, theta5),
-        DH_Param(sp.rad(-90), 0, 0, theta6)
+        DH_Param(0, a1, 0, theta2),
+        DH_Param(0, a2, 0, theta3)
     ])
 
     for T in list:
         sp.pprint(T)
 
-    T = product(list, 0, 3)
+    T = product(list)
     sp.pprint(T)
