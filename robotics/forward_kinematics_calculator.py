@@ -1,4 +1,5 @@
 import sympy as sp
+import math
 
 alpha, a, d, theta = sp.symbols("α, a, d, Θ")
 
@@ -85,28 +86,61 @@ def product(list, begin=0, end=0):
     M = sp.eye(4)
 
     if end != 0 and begin < end:
-        for i in range(begin, end):
+        for i in range(begin, end + 1):
             M *= list[i]
     else:
         for T in list:
             M *= T
 
     M = sp.nsimplify(M)
-    M = sp.expand(M)
     M = sp.trigsimp(M)
 
     return M
+
+
+def pulse_to_deg(pulse):
+    return pulse * 240 / 1000
+
+def rotation_matrix_to_rpy(rotation_matrix):
+    r11 = rotation_matrix.row(0)[0]
+    r21 = rotation_matrix.row(1)[0]
+    r31 = rotation_matrix.row(2)[0]
+    r32 = rotation_matrix.row(2)[1]
+    r33 = rotation_matrix.row(2)[2]
+
+    roll = math.atan2(r32, r33)
+    pitch = math.atan2(r21, r11)
+    yaw = math.atan2(-r31, math.sqrt(r11**2 + r21**2))
+
+    sp.pprint(roll)
+    sp.pprint(pitch)
+    sp.pprint(yaw)
 
 if __name__ == "__main__":
 
     list = calculate([
         DH_Param(0, 0, 0, theta1),
-        DH_Param(0, a1, 0, theta2),
-        DH_Param(0, a2, 0, theta3)
+        DH_Param(sp.rad(-90), 0, 0, theta2),
+        DH_Param(0, sp.symbols("L1"), 0, theta3),
+        DH_Param(0, sp.symbols("L2"), 0, theta4),
+        DH_Param(sp.rad(-90), 0, 0, theta5),
     ])
-
-    for T in list:
-        sp.pprint(T)
 
     T = product(list)
     sp.pprint(T)
+
+    T = T.evalf(chop=True, subs=
+        {
+            sp.symbols("L1"): 0.10048,
+            sp.symbols("L2"): 0.1,
+            theta1: math.radians(pulse_to_deg(500)),
+            theta2: math.radians(pulse_to_deg(600)),
+            theta3: math.radians(pulse_to_deg(820)),
+            theta4: math.radians(pulse_to_deg(110)),
+            theta5: math.radians(pulse_to_deg(500)),
+        }
+    )
+    sp.pprint(T)
+
+    rotation_matrix = T[0:3, 0:3]
+    rotation_matrix_to_rpy(rotation_matrix)
